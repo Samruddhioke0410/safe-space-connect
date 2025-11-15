@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      anonymous_matches: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          id: string
+          status: string
+          topic: string
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          status?: string
+          topic: string
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          status?: string
+          topic?: string
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: []
+      }
       channel_members: {
         Row: {
           channel_id: string | null
@@ -103,6 +133,77 @@ export type Database = {
         }
         Relationships: []
       }
+      marketplace_items: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          external_link: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          price: number
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          external_link?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          price: number
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          external_link?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          price?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      match_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_flagged: boolean | null
+          match_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_flagged?: boolean | null
+          match_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_flagged?: boolean | null
+          match_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "anonymous_matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           channel_id: string | null
@@ -148,6 +249,36 @@ export type Database = {
           },
         ]
       }
+      peer_requests: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          recipient_id: string
+          requester_id: string
+          responded_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          recipient_id: string
+          requester_id: string
+          responded_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          recipient_id?: string
+          requester_id?: string
+          responded_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       positive_feed: {
         Row: {
           author: string | null
@@ -175,6 +306,33 @@ export type Database = {
           image_url?: string | null
           likes_count?: number | null
           title?: string
+        }
+        Relationships: []
+      }
+      private_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_flagged: boolean | null
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_flagged?: boolean | null
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_flagged?: boolean | null
+          recipient_id?: string
+          sender_id?: string
         }
         Relationships: []
       }
@@ -233,6 +391,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_safety_logs: {
+        Row: {
+          context: Json | null
+          created_at: string
+          event_type: string
+          id: string
+          severity: string
+          user_id: string
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string
+          event_type: string
+          id?: string
+          severity: string
+          user_id: string
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          severity?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

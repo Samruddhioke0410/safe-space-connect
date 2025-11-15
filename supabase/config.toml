@@ -1,1 +1,7 @@
 project_id = "bosquhtojcyyxftskejh"
+
+[functions.ai-safety-check]
+verify_jwt = false
+
+[functions.match-users]
+verify_jwt = false
