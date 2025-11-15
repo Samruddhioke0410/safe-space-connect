@@ -153,7 +153,11 @@ const AppPage = () => {
               <Card className="flex flex-col h-full">
                 {selectedChannelId ? (
                   <>
-                    <MessageList channelId={selectedChannelId} />
+                    <div className="border-b p-4 bg-card">
+                      <h3 className="font-semibold">Channel Chat</h3>
+                      <p className="text-sm text-muted-foreground">Click on any user to start a 1:1 chat</p>
+                    </div>
+                    <MessageList channelId={selectedChannelId} onUserClick={handleUserClick} />
                     <MessageInput channelId={selectedChannelId} userId={userId} />
                   </>
                 ) : (
