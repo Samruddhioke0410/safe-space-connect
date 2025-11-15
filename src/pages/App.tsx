@@ -4,10 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, LogOut, MessageCircle, Sparkles, Users } from "lucide-react";
+import { Heart, LogOut, MessageCircle, Sparkles, Users, ShoppingBag, MessageSquare } from "lucide-react";
 import ChannelList from "@/components/ChannelList";
 import MessageList from "@/components/MessageList";
 import MessageInput from "@/components/MessageInput";
+import PeerRequestsList from "@/components/PeerRequestsList";
+import AnonymousMatch from "@/components/AnonymousMatch";
+import Marketplace from "@/components/Marketplace";
+import PrivateChat from "@/components/PrivateChat";
 import { useToast } from "@/hooks/use-toast";
 
 const AppPage = () => {
@@ -16,6 +20,8 @@ const AppPage = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [positiveFeed, setPositiveFeed] = useState<any[]>([]);
+  const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
+  const [selectedPeer, setSelectedPeer] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -82,14 +88,22 @@ const AppPage = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <Tabs defaultValue="channels" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+          <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto">
             <TabsTrigger value="channels" className="gap-2">
               <MessageCircle className="h-4 w-4" />
               Channels
             </TabsTrigger>
+            <TabsTrigger value="connect" className="gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Connect
+            </TabsTrigger>
             <TabsTrigger value="feed" className="gap-2">
               <Sparkles className="h-4 w-4" />
-              Positive Feed
+              Positive
+            </TabsTrigger>
+            <TabsTrigger value="marketplace" className="gap-2">
+              <ShoppingBag className="h-4 w-4" />
+              Market
             </TabsTrigger>
           </TabsList>
 
@@ -127,6 +141,46 @@ const AppPage = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="connect" className="space-y-0">
+            <div className="max-w-4xl mx-auto space-y-6">
+              <Card className="p-6">
+                <h2 className="text-2xl font-bold mb-4">Connect 1:1</h2>
+                <p className="text-muted-foreground mb-6">
+                  Connect with peers through direct support requests or anonymous matching
+                </p>
+                
+                <PeerRequestsList userId={userId} />
+                
+                <div className="space-y-4">
+                  <AnonymousMatch 
+                    userId={userId} 
+                    onMatchFound={(matchId) => setSelectedMatch(matchId)} 
+                  />
+                  
+                  {selectedMatch && (
+                    <Card>
+                      <PrivateChat
+                        userId={userId}
+                        peerId={selectedMatch}
+                        peerName="Anonymous Peer"
+                      />
+                    </Card>
+                  )}
+
+                  {selectedPeer && (
+                    <Card>
+                      <PrivateChat
+                        userId={userId}
+                        peerId={selectedPeer.id}
+                        peerName={selectedPeer.name}
+                      />
+                    </Card>
+                  )}
+                </div>
+              </Card>
+            </div>
+          </TabsContent>
+
           <TabsContent value="feed" className="space-y-4">
             <div className="max-w-2xl mx-auto">
               <div className="flex items-center gap-2 mb-6">
@@ -149,6 +203,12 @@ const AppPage = () => {
                   </Card>
                 ))}
               </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="marketplace" className="space-y-0">
+            <div className="max-w-6xl mx-auto">
+              <Marketplace />
             </div>
           </TabsContent>
         </Tabs>
