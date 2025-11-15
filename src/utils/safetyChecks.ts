@@ -7,25 +7,46 @@ const ADDRESS_REGEX = /\d+\s+(Street|St|Avenue|Ave|Road|Rd|Lane|Ln|Boulevard|Blv
 const CREDIT_CARD_REGEX = /\b\d{13,19}\b/g;
 const SSN_REGEX = /\b\d{3}-\d{2}-\d{4}\b/g;
 
-// Crisis keywords
+// Crisis keywords - expanded for better detection
 const CRISIS_KEYWORDS = [
   'kill myself',
   'end my life',
   'commit suicide',
   'want to die',
+  'should die',
   'planning to die',
   'no reason to live',
   'better off dead',
   'suicide plan',
   'take my life',
+  'wish i was dead',
+  'wish i were dead',
+  'going to die',
+  'gonna die',
+  'end it all',
+  'take pills',
+  'overdose',
 ];
 
 const SELF_HARM_KEYWORDS = [
   'cut myself',
   'hurt myself',
+  'harm myself',
   'self harm',
   'self-harm',
   'harming myself',
+  'cutting',
+  'burn myself',
+  'punish myself',
+];
+
+const HARM_OTHERS_KEYWORDS = [
+  'hurt someone',
+  'kill someone',
+  'harm others',
+  'violent thoughts',
+  'want to hurt',
+  'going to hurt',
 ];
 
 export interface PIIDetectionResult {
@@ -96,10 +117,17 @@ export function detectCrisis(text: string): CrisisDetectionResult {
       foundKeywords.push(keyword);
     }
   }
+
+  // Check for harm to others keywords
+  for (const keyword of HARM_OTHERS_KEYWORDS) {
+    if (lowerText.includes(keyword)) {
+      foundKeywords.push(keyword);
+    }
+  }
   
   let level: 'high' | 'medium' | 'low' | 'none' = 'none';
   
-  if (foundKeywords.some(k => CRISIS_KEYWORDS.includes(k))) {
+  if (foundKeywords.some(k => CRISIS_KEYWORDS.includes(k) || HARM_OTHERS_KEYWORDS.includes(k))) {
     level = 'high';
   } else if (foundKeywords.some(k => SELF_HARM_KEYWORDS.includes(k))) {
     level = 'medium';
