@@ -12,9 +12,10 @@ interface Message {
 
 interface MessageListProps {
   channelId: string;
+  onUserClick?: (userId: string, userName: string) => void;
 }
 
-const MessageList = ({ channelId }: MessageListProps) => {
+const MessageList = ({ channelId, onUserClick }: MessageListProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -86,18 +87,38 @@ const MessageList = ({ channelId }: MessageListProps) => {
       ) : (
         messages.map((message) => {
           const isOwnMessage = message.user_id === currentUserId;
+          const displayName = isOwnMessage ? "You" : "Anonymous User";
+          
           return (
             <div
               key={message.id}
               className={`flex gap-3 ${isOwnMessage ? "flex-row-reverse" : ""}`}
             >
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <div 
+                className={`w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 ${
+                  !isOwnMessage && onUserClick ? "cursor-pointer hover:bg-primary/20 transition-colors" : ""
+                }`}
+                onClick={() => {
+                  if (!isOwnMessage && onUserClick) {
+                    onUserClick(message.user_id, displayName);
+                  }
+                }}
+              >
                 <User className="h-4 w-4 text-primary" />
               </div>
               <div className={`flex-1 max-w-[70%] ${isOwnMessage ? "items-end" : ""}`}>
                 <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-sm font-medium">
-                    {isOwnMessage ? "You" : "Anonymous User"}
+                  <span 
+                    className={`text-sm font-medium ${
+                      !isOwnMessage && onUserClick ? "cursor-pointer hover:underline" : ""
+                    }`}
+                    onClick={() => {
+                      if (!isOwnMessage && onUserClick) {
+                        onUserClick(message.user_id, displayName);
+                      }
+                    }}
+                  >
+                    {displayName}
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}

@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.match-users]
 verify_jwt = false
+
+[functions.chat-support]
+verify_jwt = false
