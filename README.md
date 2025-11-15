@@ -5,7 +5,6 @@
 A safe, AI-moderated mental health support platform that connects users seeking emotional support through multiple channels:
 
 - **Anonymous Matching**: Get paired with peers for confidential topic-based conversations
-- **AI Chat Support**: 24/7 access to AI-powered mental health support
 - **Private Messaging**: Secure 1:1 conversations with safety monitoring
 - **Positive Feed**: Share and discover uplifting content with AI moderation
 - **Resource Marketplace**: Browse mental health books, merchandise, and events
@@ -76,7 +75,7 @@ All interactions include real-time safety checks for PII detection, crisis inter
 
 ## Claude API Integration
 
-This project was **built using Claude** through the Lovable development platform. Claude powered the entire backend architecture design and implementation:
+This project was **built using Claude Code** through the Lovable development platform. Claude powered the entire backend architecture design and implementation:
 
 - **Database Schema Design**: Claude designed normalized tables with proper relationships and RLS policies
 - **Edge Functions**: All serverless functions (`chat-support`, `ai-safety-check`, `match-users`, `moderate-positive-content`) were architected and implemented by Claude
@@ -97,16 +96,8 @@ The AI chat support feature uses the **Lovable AI Gateway** to access Google Gem
 - PII detection runs client-side before sending to backend
 - Safety logs store only event metadata, not full message content
 
-### Challenge 2: Anonymous Matching Algorithm
-**Problem**: Matching users seeking support on similar topics without revealing identities.
 
-**Solution**: 
-- Created a matching edge function that queries available users by support preferences
-- Used transaction-like status updates to prevent race conditions
-- Implemented time-based cleanup for stale matches
-- Maintained anonymity by never exposing user IDs to other users
-
-### Challenge 3: Real-time Safety Moderation
+### Challenge 2: Real-time Safety Moderation
 **Problem**: Needed instant content moderation without blocking legitimate support conversations.
 
 **Solution**:
@@ -115,7 +106,7 @@ The AI chat support feature uses the **Lovable AI Gateway** to access Google Gem
 - Created a crisis detection system that shows resources without interrupting conversation flow
 - Built positive feed with AI pre-approval before posts go live
 
-### Challenge 4: Balancing Security with Functionality
+### Challenge 3: Balancing Security with Functionality
 **Problem**: Initial RLS policies were too permissive, exposing user data publicly.
 
 **Solution**:
