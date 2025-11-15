@@ -49,11 +49,19 @@ export function detectPII(text: string): PIIDetectionResult {
   if (CREDIT_CARD_REGEX.test(text)) types.push('credit card');
   if (SSN_REGEX.test(text)) types.push('social security number');
   
-  // Check for context clues
+  // Check for actual name patterns (not just "I am" + emotion)
   const lowerText = text.toLowerCase();
-  if (lowerText.includes('my name is') || lowerText.includes('i am')) {
-    const words = text.split(/\s+/);
-    if (words.length > 3) types.push('personal name');
+  const namePatterns = [
+    /my name is\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i,  // "my name is John Smith"
+    /i am\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i,         // "I am John Smith" (with capitalized names)
+    /call me\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i,      // "call me John Smith"
+  ];
+  
+  for (const pattern of namePatterns) {
+    if (pattern.test(text)) {
+      types.push('full name');
+      break;
+    }
   }
   
   if (lowerText.includes('i live at') || lowerText.includes('my address')) {
