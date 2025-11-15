@@ -286,8 +286,12 @@ export type Database = {
           created_at: string | null
           id: string
           image_url: string | null
+          is_ai_approved: boolean | null
           likes_count: number | null
+          post_type: string | null
           title: string
+          user_id: string | null
+          video_url: string | null
         }
         Insert: {
           author?: string | null
@@ -295,8 +299,12 @@ export type Database = {
           created_at?: string | null
           id?: string
           image_url?: string | null
+          is_ai_approved?: boolean | null
           likes_count?: number | null
+          post_type?: string | null
           title: string
+          user_id?: string | null
+          video_url?: string | null
         }
         Update: {
           author?: string | null
@@ -304,10 +312,22 @@ export type Database = {
           created_at?: string | null
           id?: string
           image_url?: string | null
+          is_ai_approved?: boolean | null
           likes_count?: number | null
+          post_type?: string | null
           title?: string
+          user_id?: string | null
+          video_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "positive_feed_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       private_messages: {
         Row: {
