@@ -24,8 +24,12 @@ const MessageInput = ({ channelId, userId }: MessageInputProps) => {
   const handleSend = async () => {
     if (!message.trim() || !channelId || !userId) return;
 
+    console.log("=== MESSAGE SEND STARTED ===");
+    console.log("Message:", message);
+
     // Check for PII
     const piiCheck = detectPII(message);
+    console.log("PII Check:", piiCheck);
     if (piiCheck.hasPII) {
       setPiiDetected({ hasPII: true, types: piiCheck.types });
       return;
@@ -33,19 +37,26 @@ const MessageInput = ({ channelId, userId }: MessageInputProps) => {
 
     // Check for crisis
     const crisisCheck = detectCrisis(message);
+    console.log("Crisis Check:", crisisCheck);
     if (crisisCheck.isCrisis && crisisCheck.level !== 'none') {
       setCrisisLevel(crisisCheck.level);
       setCrisisModalOpen(true);
       
       if (crisisCheck.level === 'high') {
+        console.log("HIGH CRISIS DETECTED - Showing modal and blocking send");
         return;
       }
+      console.log("CRISIS DETECTED - Showing modal but allowing send");
     }
 
     // Re-enable AI safety check with fixed parsing
+    console.log("Calling AI safety check...");
     const { data: safetyResult, error: safetyError } = await supabase.functions.invoke("ai-safety-check", {
       body: { message, userId, context: { type: "channel", channelId } }
     });
+
+    console.log("AI Safety Result:", safetyResult);
+    console.log("AI Safety Error:", safetyError);
 
     if (safetyError) {
       console.warn("AI safety check failed, proceeding with client-side checks only:", safetyError);
