@@ -343,6 +343,8 @@ export type Database = {
           id: string
           is_anonymous: boolean | null
           last_seen: string | null
+          seeking_support: boolean | null
+          support_preferences: Json | null
         }
         Insert: {
           created_at?: string | null
@@ -350,6 +352,8 @@ export type Database = {
           id: string
           is_anonymous?: boolean | null
           last_seen?: string | null
+          seeking_support?: boolean | null
+          support_preferences?: Json | null
         }
         Update: {
           created_at?: string | null
@@ -357,6 +361,8 @@ export type Database = {
           id?: string
           is_anonymous?: boolean | null
           last_seen?: string | null
+          seeking_support?: boolean | null
+          support_preferences?: Json | null
         }
         Relationships: []
       }
