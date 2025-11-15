@@ -3,8 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Shuffle, Loader2 } from "lucide-react";
 
@@ -24,43 +22,19 @@ const topics = [
   "Life Transitions",
 ];
 
-const supportStyles = [
-  { value: "listener", label: "Someone to listen" },
-  { value: "empathy", label: "Empathy & understanding" },
-  { value: "advice", label: "Practical advice" },
-  { value: "shared-experience", label: "Shared experience" },
-  { value: "encouragement", label: "Encouragement" },
-  { value: "acceptance", label: "Acceptance" },
-];
-
 const AnonymousMatch = ({ userId, onMatchFound }: AnonymousMatchProps) => {
   const [open, setOpen] = useState(false);
   const [topic, setTopic] = useState("");
-  const [seekingSupport, setSeekingSupport] = useState(true);
-  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
   const [isMatching, setIsMatching] = useState(false);
   const { toast } = useToast();
 
-  const toggleStyle = (style: string) => {
-    setSelectedStyles(prev =>
-      prev.includes(style)
-        ? prev.filter(s => s !== style)
-        : [...prev, style]
-    );
-  };
-
   const startMatching = async () => {
-    if (!topic || selectedStyles.length === 0) return;
+    if (!topic) return;
     
     setIsMatching(true);
     
     const { data, error } = await supabase.functions.invoke("match-users", {
-      body: { 
-        userId, 
-        topic,
-        seekingSupport,
-        supportStyles: selectedStyles
-      }
+      body: { userId, topic }
     });
 
     if (error) {
@@ -131,68 +105,22 @@ const AnonymousMatch = ({ userId, onMatchFound }: AnonymousMatchProps) => {
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>What are you looking for?</Label>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant={seekingSupport ? "default" : "outline"}
-                  onClick={() => setSeekingSupport(true)}
-                  className="flex-1"
-                >
-                  Seeking Support
-                </Button>
-                <Button
-                  type="button"
-                  variant={!seekingSupport ? "default" : "outline"}
-                  onClick={() => setSeekingSupport(false)}
-                  className="flex-1"
-                >
-                  Offering Support
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Topic</Label>
-              <Select value={topic} onValueChange={setTopic}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select topic..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {topics.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {t}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Support Style Preferences</Label>
-              <div className="space-y-2">
-                {supportStyles.map((style) => (
-                  <div key={style.value} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={style.value}
-                      checked={selectedStyles.includes(style.value)}
-                      onCheckedChange={() => toggleStyle(style.value)}
-                    />
-                    <label
-                      htmlFor={style.value}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      {style.label}
-                    </label>
-                  </div>
+            <Select value={topic} onValueChange={setTopic}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select topic..." />
+              </SelectTrigger>
+              <SelectContent>
+                {topics.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
                 ))}
-              </div>
-            </div>
+              </SelectContent>
+            </Select>
 
             <Button 
               onClick={startMatching} 
-              disabled={!topic || selectedStyles.length === 0 || isMatching}
+              disabled={!topic || isMatching}
               className="w-full"
             >
               {isMatching ? (
