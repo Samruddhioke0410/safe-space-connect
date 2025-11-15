@@ -98,16 +98,41 @@ const ChannelList = ({ onSelectChannel, selectedChannelId }: ChannelListProps) =
       return;
     }
 
+    // Check if already a member
+    const { data: existingMember } = await supabase
+      .from("channel_members")
+      .select("id")
+      .eq("channel_id", channelId)
+      .eq("user_id", userId)
+      .single();
+
+    if (existingMember) {
+      // Already a member, just select the channel
+      onSelectChannel(channelId);
+      fetchChannels();
+      return;
+    }
+
     const { error } = await supabase
       .from("channel_members")
       .insert({ channel_id: channelId, user_id: userId });
 
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to join channel",
-        description: error.message,
-      });
+      // If it's a duplicate key error, treat as success
+      if (error.code === "23505") {
+        toast({
+          title: "Already a member!",
+          description: "You're already in this channel",
+        });
+        fetchChannels();
+        onSelectChannel(channelId);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Failed to join channel",
+          description: error.message,
+        });
+      }
     } else {
       toast({
         title: "Joined channel!",
