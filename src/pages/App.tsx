@@ -12,6 +12,7 @@ import PeerRequestsList from "@/components/PeerRequestsList";
 import AnonymousMatch from "@/components/AnonymousMatch";
 import Marketplace from "@/components/Marketplace";
 import PrivateChat from "@/components/PrivateChat";
+import DualChatDemo from "@/components/DualChatDemo";
 import { useToast } from "@/hooks/use-toast";
 
 const AppPage = () => {
@@ -142,41 +143,14 @@ const AppPage = () => {
           </TabsContent>
 
           <TabsContent value="connect" className="space-y-0">
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="max-w-6xl mx-auto space-y-6">
               <Card className="p-6">
-                <h2 className="text-2xl font-bold mb-4">Connect 1:1</h2>
+                <h2 className="text-2xl font-bold mb-4">Connect 1:1 - Demo</h2>
                 <p className="text-muted-foreground mb-6">
-                  Connect with peers through direct support requests or anonymous matching
+                  Experience how anonymous peer support works with automatic PII detection
                 </p>
                 
-                <PeerRequestsList userId={userId} />
-                
-                <div className="space-y-4">
-                  <AnonymousMatch 
-                    userId={userId} 
-                    onMatchFound={(matchId) => setSelectedMatch(matchId)} 
-                  />
-                  
-                  {selectedMatch && (
-                    <Card>
-                      <PrivateChat
-                        userId={userId}
-                        peerId={selectedMatch}
-                        peerName="Anonymous Peer"
-                      />
-                    </Card>
-                  )}
-
-                  {selectedPeer && (
-                    <Card>
-                      <PrivateChat
-                        userId={userId}
-                        peerId={selectedPeer.id}
-                        peerName={selectedPeer.name}
-                      />
-                    </Card>
-                  )}
-                </div>
+                <DualChatDemo />
               </Card>
             </div>
           </TabsContent>
