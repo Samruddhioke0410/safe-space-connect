@@ -14,6 +14,7 @@ import AnonymousMatch from "@/components/AnonymousMatch";
 import Marketplace from "@/components/Marketplace";
 import PrivateChat from "@/components/PrivateChat";
 import DirectChatWithAI from "@/components/DirectChatWithAI";
+import ChatRequestDialog from "@/components/ChatRequestDialog";
 import { useToast } from "@/hooks/use-toast";
 
 const AppPage = () => {
@@ -24,8 +25,13 @@ const AppPage = () => {
   const [positiveFeed, setPositiveFeed] = useState<any[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
   const [selectedPeer, setSelectedPeer] = useState<{ id: string; name: string } | null>(null);
-  const [chatRequestPending, setChatRequestPending] = useState(false);
   const [activeChatUser, setActiveChatUser] = useState<{ id: string; name: string } | null>(null);
+  const [chatRequestDialog, setChatRequestDialog] = useState<{ open: boolean; userId: string; userName: string }>({
+    open: false,
+    userId: "",
+    userName: "",
+  });
+  const [activeTab, setActiveTab] = useState("channels");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -72,22 +78,19 @@ const AppPage = () => {
   const handleUserClick = (clickedUserId: string, userName: string) => {
     if (clickedUserId === userId) return;
     
-    toast({
-      title: "Chat request sent",
-      description: `Waiting for ${userName} to accept...`,
+    setChatRequestDialog({
+      open: true,
+      userId: clickedUserId,
+      userName: userName,
     });
-    
-    setChatRequestPending(true);
-    
-    // Auto-approve after 1 second for demo
-    setTimeout(() => {
-      setChatRequestPending(false);
-      setActiveChatUser({ id: clickedUserId, name: userName });
-      toast({
-        title: "Chat request accepted!",
-        description: `You can now chat with ${userName}`,
-      });
-    }, 1000);
+  };
+
+  const handleChatRequestAccepted = () => {
+    setActiveChatUser({
+      id: chatRequestDialog.userId,
+      name: chatRequestDialog.userName,
+    });
+    setActiveTab("connect");
   };
 
   if (!userId) {
@@ -112,7 +115,7 @@ const AppPage = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-        <Tabs defaultValue="channels" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto">
             <TabsTrigger value="channels" className="gap-2">
               <MessageCircle className="h-4 w-4" />
@@ -180,15 +183,6 @@ const AppPage = () => {
                     Go to the Channels tab and click on any user in the chat to send them a connection request. 
                     They'll auto-accept and you can start chatting with AI-powered peer support.
                   </p>
-                  
-                  {chatRequestPending && (
-                    <Alert>
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>
-                        Waiting for user to accept your chat request...
-                      </AlertDescription>
-                    </Alert>
-                  )}
                 </Card>
               )}
             </div>
@@ -226,6 +220,17 @@ const AppPage = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Chat Request Dialog */}
+      <ChatRequestDialog
+        open={chatRequestDialog.open}
+        onOpenChange={(open) =>
+          setChatRequestDialog({ ...chatRequestDialog, open })
+        }
+        userName={chatRequestDialog.userName}
+        userId={chatRequestDialog.userId}
+        onRequestAccepted={handleChatRequestAccepted}
+      />
     </div>
   );
 };
