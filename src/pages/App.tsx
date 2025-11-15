@@ -15,6 +15,7 @@ import Marketplace from "@/components/Marketplace";
 import PrivateChat from "@/components/PrivateChat";
 import DirectChatWithAI from "@/components/DirectChatWithAI";
 import ChatRequestDialog from "@/components/ChatRequestDialog";
+import PositiveFeed from "@/components/PositiveFeed";
 import { useToast } from "@/hooks/use-toast";
 
 const AppPage = () => {
@@ -22,7 +23,6 @@ const AppPage = () => {
   const { toast } = useToast();
   const [userId, setUserId] = useState<string | null>(null);
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
-  const [positiveFeed, setPositiveFeed] = useState<any[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
   const [selectedPeer, setSelectedPeer] = useState<{ id: string; name: string } | null>(null);
   const [activeChatUser, setActiveChatUser] = useState<{ id: string; name: string } | null>(null);
@@ -50,22 +50,8 @@ const AppPage = () => {
       }
     });
 
-    fetchPositiveFeed();
-
     return () => subscription.unsubscribe();
   }, [navigate]);
-
-  const fetchPositiveFeed = async () => {
-    const { data } = await supabase
-      .from("positive_feed")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(10);
-
-    if (data) {
-      setPositiveFeed(data);
-    }
-  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -247,28 +233,7 @@ const AppPage = () => {
           </TabsContent>
 
           <TabsContent value="feed" className="space-y-4">
-            <div className="max-w-2xl mx-auto">
-              <div className="flex items-center gap-2 mb-6">
-                <Sparkles className="h-5 w-5 text-secondary" />
-                <h2 className="text-lg font-semibold">Positive Feed</h2>
-              </div>
-
-              <div className="space-y-4">
-                {positiveFeed.map((post) => (
-                  <Card key={post.id} className="p-6">
-                    <h3 className="text-xl font-semibold mb-2">{post.title}</h3>
-                    <p className="text-muted-foreground mb-4">{post.content}</p>
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span>By {post.author}</span>
-                      <span className="flex items-center gap-1">
-                        <Heart className="h-4 w-4" />
-                        {post.likes_count}
-                      </span>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
+            <PositiveFeed userId={userId} />
           </TabsContent>
 
           <TabsContent value="marketplace" className="space-y-0">
