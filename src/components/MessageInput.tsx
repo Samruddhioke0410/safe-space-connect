@@ -60,12 +60,19 @@ const MessageInput = ({ channelId, userId }: MessageInputProps) => {
       setCrisisLevel("high");
       setCrisisModalOpen(true);
       return;
-    } else if (safetyResult?.patternDetected) {
-      toast({
-        title: "We're here for you",
-        description: "We've noticed you might be going through a difficult time. Would you like to see support resources?",
-      });
+    } else if (safetyResult?.recommendation === "resources" || safetyResult?.crisisLevel !== "none") {
+      // Show resources modal but allow message to send after
+      const detectedLevel = safetyResult.crisisLevel === "high" ? "high" : 
+                           safetyResult.crisisLevel === "medium" ? "medium" : "low";
+      setCrisisLevel(detectedLevel);
       setCrisisModalOpen(true);
+      
+      toast({
+        title: "Support resources available",
+        description: "We're here for you. Check the resources that appeared.",
+      });
+      
+      // Don't return - let message send
     }
 
     await sendMessage();
