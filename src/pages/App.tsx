@@ -86,13 +86,20 @@ const AppPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card shadow-soft">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Heart className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">I Can't Tell Anyone</h1>
+      <header className="border-b bg-card shadow-elevated backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent rounded-full blur-sm opacity-50" />
+              <div className="relative bg-gradient-to-br from-primary to-accent p-2 rounded-full">
+                <Heart className="h-5 w-5 text-primary-foreground fill-current" />
+              </div>
+            </div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent tracking-tight">
+              I Can't Tell Anyone
+            </h1>
           </div>
-          <Button variant="outline" size="sm" onClick={handleSignOut}>
+          <Button variant="outline" size="sm" onClick={handleSignOut} className="hover:bg-muted">
             <LogOut className="h-4 w-4 mr-2" />
             Sign Out
           </Button>
