@@ -13,6 +13,8 @@ interface Channel {
   icon: string;
   member_count: number;
   isMember?: boolean;
+  latestMessage?: string;
+  messageCount?: number;
 }
 
 interface ChannelListProps {
@@ -47,12 +49,40 @@ const ChannelList = ({ onSelectChannel, selectedChannelId }: ChannelListProps) =
 
       const memberChannelIds = new Set(memberData?.map((m) => m.channel_id) || []);
 
-      setChannels(
-        channelsData.map((channel) => ({
-          ...channel,
-          isMember: memberChannelIds.has(channel.id),
-        }))
+      // Fetch latest messages for joined channels
+      const channelsWithMetadata = await Promise.all(
+        channelsData.map(async (channel) => {
+          const isMember = memberChannelIds.has(channel.id);
+          
+          if (isMember) {
+            const { data: messagesData } = await supabase
+              .from("messages")
+              .select("content")
+              .eq("channel_id", channel.id)
+              .order("created_at", { ascending: false })
+              .limit(1);
+
+            const { count } = await supabase
+              .from("messages")
+              .select("*", { count: "exact", head: true })
+              .eq("channel_id", channel.id);
+
+            return {
+              ...channel,
+              isMember,
+              latestMessage: messagesData?.[0]?.content,
+              messageCount: count || 0,
+            };
+          }
+
+          return {
+            ...channel,
+            isMember,
+          };
+        })
       );
+
+      setChannels(channelsWithMetadata);
     } else if (channelsData) {
       setChannels(channelsData);
     }
@@ -88,48 +118,92 @@ const ChannelList = ({ onSelectChannel, selectedChannelId }: ChannelListProps) =
     }
   };
 
+  const joinedChannels = channels.filter((c) => c.isMember);
+  const availableChannels = channels.filter((c) => !c.isMember);
+
   return (
-    <div className="space-y-3">
-      {channels.map((channel) => (
-        <Card
-          key={channel.id}
-          className={`p-4 cursor-pointer transition-all hover:shadow-soft ${
-            selectedChannelId === channel.id ? "ring-2 ring-primary" : ""
-          }`}
-          onClick={() => channel.isMember && onSelectChannel(channel.id)}
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-2xl">{channel.icon}</span>
-                <h3 className="font-semibold">{channel.name}</h3>
-              </div>
-              <p className="text-sm text-muted-foreground mb-2">{channel.description}</p>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Users className="h-3 w-3" />
-                <span>{channel.member_count} members</span>
-              </div>
-            </div>
-            {channel.isMember ? (
-              <div className="flex items-center gap-2 text-success text-sm font-medium">
-                <Check className="h-4 w-4" />
-                Joined
-              </div>
-            ) : (
-              <Button
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleJoinChannel(channel.id);
-                }}
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Join
-              </Button>
-            )}
+    <div className="space-y-6">
+      {/* Joined Channels Section */}
+      {joinedChannels.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-2">
+            <Check className="h-4 w-4 text-primary" />
+            <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+              Joined Channels
+            </h2>
           </div>
-        </Card>
-      ))}
+          {joinedChannels.map((channel) => (
+            <Card
+              key={channel.id}
+              className={`p-4 cursor-pointer transition-all hover:shadow-soft ${
+                selectedChannelId === channel.id ? "ring-2 ring-primary" : ""
+              }`}
+              onClick={() => onSelectChannel(channel.id)}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-2xl">{channel.icon}</span>
+                    <h3 className="font-semibold">{channel.name}</h3>
+                    {channel.messageCount && channel.messageCount > 0 && (
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                        {channel.messageCount} messages
+                      </span>
+                    )}
+                  </div>
+                  {channel.latestMessage && (
+                    <p className="text-sm text-muted-foreground truncate">
+                      {channel.latestMessage}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Available Channels Section */}
+      {availableChannels.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-2">
+            <Plus className="h-4 w-4 text-muted-foreground" />
+            <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+              Available Channels
+            </h2>
+          </div>
+          {availableChannels.map((channel) => (
+            <Card
+              key={channel.id}
+              className="p-4 transition-all hover:shadow-soft"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-2xl">{channel.icon}</span>
+                    <h3 className="font-semibold">{channel.name}</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2">{channel.description}</p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Users className="h-3 w-3" />
+                    <span>{channel.member_count} members</span>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleJoinChannel(channel.id);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Join
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
