@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, LogOut, MessageCircle, Sparkles, Users, ShoppingBag, MessageSquare, AlertTriangle } from "lucide-react";
+import { Heart, LogOut, MessageCircle, Sparkles, Users, ShoppingBag, MessageSquare, AlertTriangle, Shuffle } from "lucide-react";
 import ChannelList from "@/components/ChannelList";
 import MessageList from "@/components/MessageList";
 import MessageInput from "@/components/MessageInput";
@@ -180,14 +180,68 @@ const AppPage = () => {
                   userName={activeChatUser.name}
                   onBack={() => setActiveChatUser(null)}
                 />
-              ) : (
+              ) : selectedMatch ? (
                 <Card className="p-6">
-                  <h2 className="text-2xl font-bold mb-4">Connect 1:1 - Demo</h2>
-                  <p className="text-muted-foreground mb-6">
-                    Go to the Channels tab and click on any user in the chat to send them a connection request. 
-                    They'll auto-accept and you can start chatting with AI-powered peer support.
-                  </p>
+                  <PrivateChat
+                    userId={userId}
+                    peerId={selectedMatch}
+                    peerName="Anonymous Match"
+                  />
                 </Card>
+              ) : selectedPeer ? (
+                <Card className="p-6">
+                  <PrivateChat
+                    userId={userId}
+                    peerId={selectedPeer.id}
+                    peerName={selectedPeer.name}
+                  />
+                </Card>
+              ) : (
+                <>
+                  <Card className="p-6">
+                    <h2 className="text-2xl font-bold mb-4">Connect 1:1</h2>
+                    <p className="text-muted-foreground mb-6">
+                      Three ways to connect with peers for private support
+                    </p>
+                    
+                    <div className="grid md:grid-cols-3 gap-4 mb-6">
+                      <div className="p-4 bg-muted/50 rounded-lg">
+                        <MessageCircle className="h-8 w-8 text-primary mb-2" />
+                        <h3 className="font-semibold mb-1">From Group Chat</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Click any user in channels to send a support request
+                        </p>
+                      </div>
+                      <div className="p-4 bg-muted/50 rounded-lg">
+                        <Shuffle className="h-8 w-8 text-primary mb-2" />
+                        <h3 className="font-semibold mb-1">Anonymous Match</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Match with someone facing similar challenges
+                        </p>
+                      </div>
+                      <div className="p-4 bg-muted/50 rounded-lg">
+                        <Users className="h-8 w-8 text-primary mb-2" />
+                        <h3 className="font-semibold mb-1">Peer Requests</h3>
+                        <p className="text-sm text-muted-foreground">
+                          See and respond to incoming support requests
+                        </p>
+                      </div>
+                    </div>
+
+                    <PeerRequestsList userId={userId} />
+                  </Card>
+
+                  <Card className="p-6">
+                    <h3 className="text-xl font-bold mb-4">Find Anonymous Support</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Get matched with someone who understands what you're going through
+                    </p>
+                    <AnonymousMatch 
+                      userId={userId} 
+                      onMatchFound={(matchId) => setSelectedMatch(matchId)} 
+                    />
+                  </Card>
+                </>
               )}
             </div>
           </TabsContent>
