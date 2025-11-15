@@ -7,6 +7,8 @@ import { Send, AlertTriangle, User, ArrowLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { detectPII, detectCrisis } from "@/utils/safetyChecks";
+import CrisisModal from "./CrisisModal";
 
 interface Message {
   id: string;
@@ -32,6 +34,8 @@ const DirectChatWithAI = ({ userName, onBack }: DirectChatWithAIProps) => {
   ]);
   const [input, setInput] = useState("");
   const [piiWarning, setPiiWarning] = useState<string | null>(null);
+  const [crisisModalOpen, setCrisisModalOpen] = useState(false);
+  const [crisisLevel, setCrisisLevel] = useState<'high' | 'medium' | 'low'>('low');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -39,23 +43,6 @@ const DirectChatWithAI = ({ userName, onBack }: DirectChatWithAIProps) => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  // PII detection patterns
-  const detectPII = (text: string): { hasPII: boolean; type?: string } => {
-    const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
-    const phonePattern = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}|\d{10}/;
-    const addressPattern = /\b\d+\s+[A-Za-z]+\s+(Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct)\b/i;
-    const ssnPattern = /\b\d{3}-\d{2}-\d{4}\b/;
-    const creditCardPattern = /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/;
-
-    if (emailPattern.test(text)) return { hasPII: true, type: "email address" };
-    if (phonePattern.test(text)) return { hasPII: true, type: "phone number" };
-    if (addressPattern.test(text)) return { hasPII: true, type: "physical address" };
-    if (ssnPattern.test(text)) return { hasPII: true, type: "Social Security Number" };
-    if (creditCardPattern.test(text)) return { hasPII: true, type: "credit card number" };
-
-    return { hasPII: false };
-  };
 
   const getAIResponse = async (userMessage: string) => {
     try {
@@ -81,12 +68,68 @@ const DirectChatWithAI = ({ userName, onBack }: DirectChatWithAIProps) => {
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
+    console.log("=== DIRECT CHAT SEND ===");
+    console.log("Input:", input);
+
+    // Use utility function for PII detection
     const piiCheck = detectPII(input);
+    console.log("PII Check:", piiCheck);
     
     if (piiCheck.hasPII) {
-      setPiiWarning(`⚠️ Warning: Potential ${piiCheck.type} detected! For your safety, this message cannot be sent. Please remove personal information.`);
+      const typesText = piiCheck.types.join(', ');
+      setPiiWarning(`⚠️ Warning: Potential ${typesText} detected! For your safety, this message cannot be sent. Please remove personal information.`);
       setTimeout(() => setPiiWarning(null), 5000);
       return;
+    }
+
+    // Check for crisis
+    const crisisCheck = detectCrisis(input);
+    console.log("Crisis Check:", crisisCheck);
+    
+    if (crisisCheck.isCrisis && crisisCheck.level !== 'none') {
+      setCrisisLevel(crisisCheck.level);
+      setCrisisModalOpen(true);
+      
+      toast({
+        title: "Support resources available",
+        description: "We've noticed you might be in distress. Please check the resources that appeared.",
+      });
+      
+      if (crisisCheck.level === 'high') {
+        console.log("HIGH CRISIS - Blocking send");
+        return;
+      }
+      console.log("CRISIS DETECTED - Showing modal but allowing message");
+    }
+
+    // AI safety check
+    console.log("Calling AI safety check...");
+    const { data: safetyResult, error: safetyError } = await supabase.functions.invoke("ai-safety-check", {
+      body: { message: input, context: { type: "direct_chat", userName } }
+    });
+
+    console.log("AI Safety Result:", safetyResult);
+    console.log("AI Safety Error:", safetyError);
+
+    if (safetyResult?.recommendation === "block") {
+      toast({
+        variant: "destructive",
+        title: "Message blocked for safety",
+        description: safetyResult.explanation,
+      });
+      return;
+    }
+
+    if (safetyResult?.recommendation === "resources" || safetyResult?.crisisLevel !== "none") {
+      const detectedLevel = safetyResult.crisisLevel === "high" ? "high" : 
+                           safetyResult.crisisLevel === "medium" ? "medium" : "low";
+      setCrisisLevel(detectedLevel);
+      setCrisisModalOpen(true);
+      
+      toast({
+        title: "Support resources available",
+        description: "We're here for you. Check the resources that appeared.",
+      });
     }
 
     const userMessage: Message = {
@@ -224,6 +267,12 @@ const DirectChatWithAI = ({ userName, onBack }: DirectChatWithAIProps) => {
           phone numbers, addresses, SSNs, and credit cards.
         </AlertDescription>
       </Alert>
+
+      <CrisisModal
+        open={crisisModalOpen}
+        onClose={() => setCrisisModalOpen(false)}
+        level={crisisLevel}
+      />
     </div>
   );
 };
