@@ -42,31 +42,8 @@ const MessageInput = ({ channelId, userId }: MessageInputProps) => {
       }
     }
 
-    // AI safety check
-    const { data: safetyResult, error: safetyError } = await supabase.functions.invoke("ai-safety-check", {
-      body: { message, userId, context: { type: "channel", channelId } }
-    });
-
-    if (safetyError) {
-      console.warn("AI safety check failed, proceeding with client-side checks only:", safetyError);
-    } else if (safetyResult?.recommendation === "block") {
-      toast({
-        variant: "destructive",
-        title: "Message blocked for safety",
-        description: safetyResult.explanation,
-      });
-      return;
-    } else if (safetyResult?.recommendation === "escalate") {
-      setCrisisLevel("high");
-      setCrisisModalOpen(true);
-      return;
-    } else if (safetyResult?.patternDetected) {
-      toast({
-        title: "We're here for you",
-        description: "We've noticed you might be going through a difficult time. Would you like to see support resources?",
-      });
-      setCrisisModalOpen(true);
-    }
+    // Skip AI safety check for demo - using client-side checks only
+    // This prevents false positives that block normal messages
 
     await sendMessage();
   };
