@@ -49,17 +49,20 @@ export function detectPII(text: string): PIIDetectionResult {
   if (CREDIT_CARD_REGEX.test(text)) types.push('credit card');
   if (SSN_REGEX.test(text)) types.push('social security number');
   
-  // Check for actual name patterns (not just "I am" + emotion)
+  // Check for any name patterns including first names only
   const lowerText = text.toLowerCase();
   const namePatterns = [
-    /my name is\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i,  // "my name is John Smith"
-    /i am\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i,         // "I am John Smith" (with capitalized names)
-    /call me\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i,      // "call me John Smith"
+    /my name is\s+([A-Z][a-z]+)/i,                  // "my name is John"
+    /i am\s+([A-Z][a-z]+)(?:\s|$|[,.])/i,          // "I am John" with capital letter
+    /i'm\s+([A-Z][a-z]+)(?:\s|$|[,.])/i,           // "I'm John"
+    /call me\s+([A-Z][a-z]+)/i,                     // "call me John"
+    /myself\s+([A-Z][a-z]+)/i,                      // "myself Sam"
+    /this is\s+([A-Z][a-z]+)(?:\s|$|[,.])/i,       // "this is John"
   ];
   
   for (const pattern of namePatterns) {
     if (pattern.test(text)) {
-      types.push('full name');
+      types.push('name');
       break;
     }
   }
