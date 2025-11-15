@@ -12,6 +12,7 @@ interface MarketplaceItem {
   category: string;
   price: number;
   external_link: string | null;
+  image_url: string | null;
 }
 
 const categoryIcons = {
@@ -47,36 +48,48 @@ const Marketplace = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {items.map((item) => {
           const Icon = categoryIcons[item.category as keyof typeof categoryIcons];
           return (
-            <Card key={item.id} className="p-6 hover:shadow-elevated transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <Badge variant="secondary" className="capitalize">
-                    {item.category}
-                  </Badge>
+            <Card key={item.id} className="overflow-hidden hover:shadow-elevated transition-shadow">
+              {item.image_url && (
+                <div className="aspect-video w-full overflow-hidden bg-muted">
+                  <img 
+                    src={item.image_url} 
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <p className="text-xl font-bold text-primary">${item.price}</p>
-              </div>
-
-              <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
-              <p className="text-sm text-muted-foreground mb-4">{item.description}</p>
-
-              {item.external_link && (
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => window.open(item.external_link!, "_blank")}
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Learn More
-                </Button>
               )}
+              
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <Badge variant="secondary" className="capitalize">
+                      {item.category}
+                    </Badge>
+                  </div>
+                  <p className="text-xl font-bold text-primary">${item.price}</p>
+                </div>
+
+                <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
+                <p className="text-sm text-muted-foreground mb-4">{item.description}</p>
+
+                {item.external_link && (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => window.open(item.external_link!, "_blank")}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Learn More
+                  </Button>
+                )}
+              </div>
             </Card>
           );
         })}
